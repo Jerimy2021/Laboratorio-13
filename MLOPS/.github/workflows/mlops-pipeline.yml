@@ -1,0 +1,44 @@
+name: MLOps Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_all:
+        description: "Run all jobs"
+        required: false
+        default: "true"
+
+jobs:
+  # ─────────────────────────────────────────
+  # JOB 1: Data Processing
+  # ─────────────────────────────────────────
+  data-processing:
+    name: "1 · Data Processing"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r MLOPS/requirements.txt
+
+      - name: Run data processing
+        run: |
+          python MLOPS/src/data/run_processing.py \
+            --input  MLOPS/data/raw/house_data.csv \
+            --output MLOPS/data/processed/cleaned_house_data.csv
+
+      - name: Upload processed data artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: processed-data
+          path: MLOPS/data/processed/cleaned_house_data.csv
+          retention-days: 1
